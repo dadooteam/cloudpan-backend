@@ -87,6 +87,8 @@ public class FileController {
     MultipartFile file = request.getFile("file");
     Result<Object> r = this.fileSo.upload(path, file);
 
+    response.setStatus(r.getStatus());
+
     Map<String, Object> logMap = new HashMap<>();
     logMap.put("path", path);
     logMap.put("filename", file.getName());

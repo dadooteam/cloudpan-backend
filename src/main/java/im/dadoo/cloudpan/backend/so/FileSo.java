@@ -50,6 +50,7 @@ public class FileSo {
         } catch (Exception e) {
             ELOGGER.error(String.format("%s遍历失败", path), e);
         }
+        r.setStatus(r.getCode() / 1_000_000);
         return r;
     }
 
@@ -68,6 +69,7 @@ public class FileSo {
         } catch (Exception e) {
             ELOGGER.error(String.format("%s下载失败", path), e);
         }
+        r.setStatus(r.getCode() / 1_000_000);
         return r;
     }
 
@@ -75,21 +77,24 @@ public class FileSo {
       Result<Object> r = new Result<>();
       r.setCode(500_001_000);
       try {
-        String fullpath = this.env.getProperty("master.path") + "/" + path + "/" + file.getName();
+        String directory = this.env.getProperty("master.path") + "/" + path;
+        String fullpath = directory + "/" + file.getOriginalFilename();
         File newFile = new File(fullpath);
         if (newFile.exists()) {
           newFile.delete();
         }
-        if (newFile.createNewFile()) {
+
+        if (new File(directory).mkdirs() && newFile.createNewFile()) {
           FileCopyUtils.copy(file.getInputStream(), new BufferedOutputStream(new FileOutputStream(newFile)));
         } else {
-          throw new Exception(String.format("创建新文件失败，路径%s，文件名%s", fullpath, file.getName()));
+          throw new Exception(String.format("创建新文件失败，路径%s，文件名%s", fullpath, file.getOriginalFilename()));
         }
         r.setCode(200_001_000);
       } catch (Exception e) {
         r.setMessage(e.getLocalizedMessage());
         ELOGGER.error(Long.toString(r.getCode()), e);
       }
+      r.setStatus(r.getCode() / 1_000_000);
       return r;
     }
 

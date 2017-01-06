@@ -4,9 +4,10 @@ package im.dadoo.cloudpan.backend.dto;
  * Created by codekitten on 2016/12/27.
  */
 public class Result<T> {
-    private long code;
 
-    private long status;
+    private int code;
+
+    private int status;
 
     private String message;
 
@@ -23,19 +24,19 @@ public class Result<T> {
         return sb.toString();
     }
 
-    public long getCode() {
+    public int getCode() {
         return code;
     }
 
-    public void setCode(long code) {
+    public void setCode(int code) {
         this.code = code;
     }
 
-    public long getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(long status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
