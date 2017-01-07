@@ -1,4 +1,4 @@
-package im.dadoo.cloudpan.backend.dto;
+package im.dadoo.cloudpan.backend.common.dto;
 
 /**
  * Created by codekitten on 2016/12/27.
