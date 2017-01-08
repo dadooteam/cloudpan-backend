@@ -18,8 +18,11 @@ import java.util.List;
 public class CloudFileDao {
 
   private static final String INSERT_SQL =
-      "INSERT INTO t_cloud_file(gmt_create,gmt_modify,user_id,sup_id,name,mime,size,md5) "
-          + "VALUES(:gmt_create,:gmt_modify,:user_id,:sup_id,:name,:mime:,:size,:md5)";
+      "INSERT INTO t_cloud_file(gmt_create,gmt_modify,user_id,sup_id,name,mime,section,size,md5) "
+          + "VALUES(:gmt_create,:gmt_modify,:user_id,:sup_id,:name,:mime:,:section,:size,:md5)";
+
+  private static final String UPDATE_BY_ID_SQL =
+      "UPDATE t_cloud_file SET mime=:mime, size=:size, md5=:md5 WHERE id=:id";
 
   private static final String DELETE_BY_ID_SQL =
       "DELETE FROM t_cloud_file WHERE id=:id";
@@ -51,10 +54,20 @@ public class CloudFileDao {
     sps.addValue("sup_id", po.getSupId());
     sps.addValue("name", po.getName());
     sps.addValue("mime", po.getMime());
+    sps.addValue("section", po.getSection());
     sps.addValue("size", po.getSize());
     sps.addValue("md5", po.getMd5());
     this.jdbcTemplate.update(INSERT_SQL, sps, holder);
     return holder.getKey().longValue();
+  }
+
+  public void updateById(CloudFilePo po) {
+    MapSqlParameterSource sps = new MapSqlParameterSource();
+    sps.addValue("id", po.getId());
+    sps.addValue("mime", po.getMime());
+    sps.addValue("size", po.getSize());
+    sps.addValue("md5", po.getMd5());
+    this.jdbcTemplate.update(UPDATE_BY_ID_SQL, sps);
   }
 
   public void deleteById(long id) {

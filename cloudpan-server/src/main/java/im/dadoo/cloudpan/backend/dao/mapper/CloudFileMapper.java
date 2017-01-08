@@ -23,6 +23,7 @@ public class CloudFileMapper implements RowMapper<CloudFilePo> {
     po.setSupId(rs.getLong("sup_id"));
     po.setName(rs.getString("name"));
     po.setMime(rs.getString("mime"));
+    po.setSection(rs.getString("section"));
     po.setSize(rs.getLong("size"));
     po.setMd5(rs.getString("md5"));
 

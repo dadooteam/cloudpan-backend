@@ -19,6 +19,8 @@ public class CloudFilePo {
 
   private String mime;
 
+  private String section;
+
   private long size;
 
   private String md5;
@@ -33,6 +35,7 @@ public class CloudFilePo {
     sb.append(", supId=").append(supId);
     sb.append(", name='").append(name).append('\'');
     sb.append(", mime='").append(mime).append('\'');
+    sb.append(", section='").append(section).append('\'');
     sb.append(", size=").append(size);
     sb.append(", md5='").append(md5).append('\'');
     sb.append('}');
@@ -93,6 +96,14 @@ public class CloudFilePo {
 
   public void setMime(String mime) {
     this.mime = mime;
+  }
+
+  public String getSection() {
+    return section;
+  }
+
+  public void setSection(String section) {
+    this.section = section;
   }
 
   public long getSize() {

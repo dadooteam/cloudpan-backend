@@ -1,36 +1,86 @@
 package im.dadoo.cloudpan.backend.common.dto;
 
 /**
- * Created by codekitten on 2016/12/27.
+ * Created by codekitten on 2017/1/7.
  */
 public class FileDto {
 
-    private String name;
+  //最近更新时间戳
+  private long gmtModify;
 
-    private boolean isDirectory;
+  //文件路径
+  private String path;
 
-    @Override
-    public String toString() {
-        final StringBuffer sb = new StringBuffer("FileDto{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", isDirectory=").append(isDirectory);
-        sb.append('}');
-        return sb.toString();
-    }
+  //文件名or文件夹名
+  private String name;
 
-    public String getName() {
-        return name;
-    }
+  //文件类型（文件夹为空）
+  private String mime;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  //文件大小（文件夹为0）
+  private long size;
 
-    public boolean isDirectory() {
-        return isDirectory;
-    }
+  //文件类型，1文件，2文件夹
+  private int type;
 
-    public void setDirectory(boolean directory) {
-        isDirectory = directory;
-    }
+  @Override
+  public String toString() {
+    final StringBuffer sb = new StringBuffer("FileDto{");
+    sb.append("gmtModify=").append(gmtModify);
+    sb.append(", path='").append(path).append('\'');
+    sb.append(", name='").append(name).append('\'');
+    sb.append(", mime='").append(mime).append('\'');
+    sb.append(", size=").append(size);
+    sb.append(", type=").append(type);
+    sb.append('}');
+    return sb.toString();
+  }
+
+  public long getGmtModify() {
+    return gmtModify;
+  }
+
+  public void setGmtModify(long gmtModify) {
+    this.gmtModify = gmtModify;
+  }
+
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getMime() {
+    return mime;
+  }
+
+  public void setMime(String mime) {
+    this.mime = mime;
+  }
+
+  public long getSize() {
+    return size;
+  }
+
+  public void setSize(long size) {
+    this.size = size;
+  }
+
+  public int getType() {
+    return type;
+  }
+
+  public void setType(int type) {
+    this.type = type;
+  }
 }
