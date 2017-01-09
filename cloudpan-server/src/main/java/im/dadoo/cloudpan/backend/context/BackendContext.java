@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 @EnableAspectJAutoProxy
 @PropertySource("file:server.properties")
 @ComponentScan({"im.dadoo"})
-public class CloudpanContext extends WebMvcConfigurerAdapter {
+public class BackendContext extends WebMvcConfigurerAdapter {
 
   @Resource
   private Environment env;
@@ -66,23 +66,23 @@ public class CloudpanContext extends WebMvcConfigurerAdapter {
     return multipartResolver;
   }
 
-  @Bean(destroyMethod = "close")
-  public DataSource dataSource() {
-    HikariDataSource dataSource = new HikariDataSource();
-    dataSource.setJdbcUrl(this.env.getProperty("db.url"));
-    dataSource.setUsername(this.env.getProperty("db.username"));
-    dataSource.setPassword(this.env.getProperty("db.password"));
-    dataSource.setMaximumPoolSize(NumberUtils.toInt(this.env.getProperty("db.poolsize")));
-    dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-
-    return dataSource;
-  }
-
-  @Bean
-  public NamedParameterJdbcTemplate jdbcTemplate() {
-    NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(this.dataSource());
-    return jdbcTemplate;
-  }
+//  @Bean(destroyMethod = "close")
+//  public DataSource dataSource() {
+//    HikariDataSource dataSource = new HikariDataSource();
+//    dataSource.setJdbcUrl(this.env.getProperty("db.url"));
+//    dataSource.setUsername(this.env.getProperty("db.username"));
+//    dataSource.setPassword(this.env.getProperty("db.password"));
+//    dataSource.setMaximumPoolSize(NumberUtils.toInt(this.env.getProperty("db.poolsize")));
+//    dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+//
+//    return dataSource;
+//  }
+//
+//  @Bean
+//  public NamedParameterJdbcTemplate jdbcTemplate() {
+//    NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(this.dataSource());
+//    return jdbcTemplate;
+//  }
 
 }
 

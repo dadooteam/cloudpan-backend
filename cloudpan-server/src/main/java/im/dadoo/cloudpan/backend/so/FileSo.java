@@ -1,101 +1,160 @@
 package im.dadoo.cloudpan.backend.so;
 
-import im.dadoo.cloudpan.backend.dto.FileDto;
-import im.dadoo.cloudpan.backend.dto.Result;
+import im.dadoo.cloudpan.backend.bo.ConverterBo;
+import im.dadoo.cloudpan.backend.common.constant.CloudpanCode;
+import im.dadoo.cloudpan.backend.common.constant.CloudpanConstant;
+import im.dadoo.cloudpan.backend.common.dto.FileDto;
+import im.dadoo.cloudpan.backend.common.dto.Result;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileCopyUtils;
+import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Created by codekitten on 2016/12/27.
+ * Created by codekitten on 2017/1/7.
  */
 @Service
 public class FileSo {
 
-    private static final Logger ELOGGER = LoggerFactory.getLogger(Exception.class);
+  private static final Logger MLOGGER = LoggerFactory.getLogger(FileSo.class);
+  private static final Logger ELOGGER = LoggerFactory.getLogger(Exception.class);
 
-    @Resource
-    private Environment env;
+  @Resource
+  private Environment env;
 
-    public Result<List<FileDto>> traverse(String path) {
-        Result<List<FileDto>> r = new Result<>();
-        r.setCode(500_001_000);
-        try {
-            if (StringUtils.isNotBlank(path)) {
-                String fullpath = this.env.getProperty("master.path") + "/" +path;
-                File fullFile = new File(fullpath);
-                if (fullFile != null && fullFile.exists()) {
-                List<FileDto> data = Arrays.asList(fullFile.listFiles()).stream().map(file -> {
-                        FileDto fileDto = new FileDto();
-                        fileDto.setName(file.getName());
-                        fileDto.setDirectory(file.isDirectory());
-                        return fileDto;
-                    }).collect(Collectors.toList());
-                    r.setData(data);
-                }
-            }
-            r.setCode(200_001_000);
-        } catch (Exception e) {
-            ELOGGER.error(String.format("%s遍历失败", path), e);
-        }
-        r.setStatus(r.getCode() / 1_000_000);
-        return r;
-    }
+  @Resource
+  private ConverterBo converterBo;
 
-    public Result<File> download(String path) {
-        Result<File> r = new Result<>();
-        r.setCode(500_001_000);
-        try {
-            if (StringUtils.isNotBlank(path)) {
-                String fullpath = this.env.getProperty("master.path") + "/" + path;
-                File fullFile = new File(fullpath);
-                if (fullFile != null && fullFile.exists() && fullFile.isFile()) {
-                    r.setData(fullFile);
-                }
-            }
-            r.setCode(200_001_000);
-        } catch (Exception e) {
-            ELOGGER.error(String.format("%s下载失败", path), e);
-        }
-        r.setStatus(r.getCode() / 1_000_000);
-        return r;
-    }
-
-    public Result<Object> upload(String path, MultipartFile file) {
-      Result<Object> r = new Result<>();
-      r.setCode(500_001_000);
-      try {
-        String directory = this.env.getProperty("master.path") + "/" + path;
-        String fullpath = directory + "/" + file.getOriginalFilename();
-        File newFile = new File(fullpath);
-        if (newFile.exists()) {
-          newFile.delete();
-        }
-
-        if (new File(directory).mkdirs() && newFile.createNewFile()) {
-          FileCopyUtils.copy(file.getInputStream(), new BufferedOutputStream(new FileOutputStream(newFile)));
-        } else {
-          throw new Exception(String.format("创建新文件失败，路径%s，文件名%s", fullpath, file.getOriginalFilename()));
-        }
-        r.setCode(200_001_000);
-      } catch (Exception e) {
-        r.setMessage(e.getLocalizedMessage());
-        ELOGGER.error(Long.toString(r.getCode()), e);
+  public Result<FileDto> upload(long userId, String path, MultipartFile file) {
+    Result<FileDto> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+      Assert.isTrue(!file.isEmpty());
+      String newPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, file.getOriginalFilename());
+      if (StringUtils.isNotBlank(path)) {
+        newPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, file.getOriginalFilename());
       }
-      r.setStatus(r.getCode() / 1_000_000);
-      return r;
+      File newFile = new File(newPath);
+      //必须文件不存在才能上传
+      if (!newFile.exists()) {
+        //强制创建文件夹
+        FileUtils.forceMkdir(newFile.getParentFile());
+        //创建新文件
+        if (newFile.createNewFile()) {
+          file.transferTo(newFile);
+        }
+        FileDto fileDto = new FileDto();
+        fileDto.setGmtModify(newFile.lastModified());
+        fileDto.setName(newFile.getName());
+        fileDto.setSize(newFile.length());
+        fileDto.setPath(newFile.getAbsolutePath());
+        fileDto.setType(CloudpanConstant.TYPE_FILE);
+        InputStream is = FileUtils.openInputStream(newFile);
+        fileDto.setMime(URLConnection.guessContentTypeFromStream(is));
+        IOUtils.closeQuietly(is);
+        r.setData(fileDto);
+      } else {
+        r.setCode(CloudpanCode.NAME_EXIST.getCode());
+        throw new Exception(String.format("文件名%s已存在", file.getOriginalFilename()));
+      }
+      r.setCode(CloudpanCode.OK.getCode());
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
     }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
+  public Result<FileDto> mkdir(long userId, String path, String name) {
+    Result<FileDto> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+      String newPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, name);
+      if (StringUtils.isNotBlank(path)) {
+        newPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, name);
+      }
+      File newFile = new File(newPath);
+      //必须文件不存在才能上传
+      if (!newFile.exists()) {
+        //强制创建文件夹
+        FileUtils.forceMkdir(newFile);
+        FileDto fileDto = new FileDto();
+        fileDto.setGmtModify(newFile.lastModified());
+        fileDto.setName(newFile.getName());
+        fileDto.setSize(0L);
+        fileDto.setPath(newFile.getAbsolutePath());
+        fileDto.setType(CloudpanConstant.TYPE_DIR);
+        fileDto.setMime("");
+        r.setData(fileDto);
+      } else {
+        r.setCode(CloudpanCode.NAME_EXIST.getCode());
+        throw new Exception(String.format("文件夹名%s已存在", name));
+      }
+      r.setCode(CloudpanCode.OK.getCode());
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
+    }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
+  public Result<Object> delete(long userId, String path) {
+    Result<Object> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+      String fullPath = String.format("%s/%d", this.env.getProperty("master.path"), userId);
+      if (StringUtils.isNotBlank(path)) {
+        fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+      }
+      File file = new File(fullPath);
+      FileUtils.deleteQuietly(file);
+      r.setCode(CloudpanCode.OK.getCode());
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
+    }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
+  public Result<List<FileDto>> list(long userId, String path) {
+    Result<List<FileDto>> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+      String fullPath = String.format("%s/%d", this.env.getProperty("master.path"), userId);
+      if (StringUtils.isNotBlank(path)) {
+        fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+      }
+      File file = new File(fullPath);
+      if (file.isDirectory()) {
+        r.setData(this.converterBo.toFileDtos(Arrays.asList(file.listFiles())));
+      }
+      r.setCode(CloudpanCode.OK.getCode());
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
+    }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
 
 }
