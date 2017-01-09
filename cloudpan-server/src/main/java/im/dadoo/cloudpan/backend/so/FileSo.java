@@ -2,11 +2,9 @@ package im.dadoo.cloudpan.backend.so;
 
 import im.dadoo.cloudpan.backend.bo.ConverterBo;
 import im.dadoo.cloudpan.backend.common.constant.CloudpanCode;
-import im.dadoo.cloudpan.backend.common.constant.CloudpanConstant;
 import im.dadoo.cloudpan.backend.common.dto.FileDto;
 import im.dadoo.cloudpan.backend.common.dto.Result;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.io.InputStream;
-import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,16 +51,7 @@ public class FileSo {
         if (newFile.createNewFile()) {
           file.transferTo(newFile);
         }
-        FileDto fileDto = new FileDto();
-        fileDto.setGmtModify(newFile.lastModified());
-        fileDto.setName(newFile.getName());
-        fileDto.setSize(newFile.length());
-        fileDto.setPath(newFile.getAbsolutePath());
-        fileDto.setType(CloudpanConstant.TYPE_FILE);
-        InputStream is = FileUtils.openInputStream(newFile);
-        fileDto.setMime(URLConnection.guessContentTypeFromStream(is));
-        IOUtils.closeQuietly(is);
-        r.setData(fileDto);
+        r.setData(this.converterBo.toFileDto(newFile));
       } else {
         r.setCode(CloudpanCode.NAME_EXIST.getCode());
         throw new Exception(String.format("文件名%s已存在", file.getOriginalFilename()));
@@ -92,14 +79,7 @@ public class FileSo {
       if (!newFile.exists()) {
         //强制创建文件夹
         FileUtils.forceMkdir(newFile);
-        FileDto fileDto = new FileDto();
-        fileDto.setGmtModify(newFile.lastModified());
-        fileDto.setName(newFile.getName());
-        fileDto.setSize(0L);
-        fileDto.setPath(newFile.getAbsolutePath());
-        fileDto.setType(CloudpanConstant.TYPE_DIR);
-        fileDto.setMime("");
-        r.setData(fileDto);
+        r.setData(this.converterBo.toFileDto(newFile));
       } else {
         r.setCode(CloudpanCode.NAME_EXIST.getCode());
         throw new Exception(String.format("文件夹名%s已存在", name));
