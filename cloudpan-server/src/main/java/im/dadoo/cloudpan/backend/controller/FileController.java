@@ -4,10 +4,14 @@ import com.google.gson.Gson;
 import im.dadoo.cloudpan.backend.common.dto.FileDto;
 import im.dadoo.cloudpan.backend.common.dto.Result;
 import im.dadoo.cloudpan.backend.so.FileSo;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -18,6 +22,10 @@ import org.springframework.web.servlet.HandlerMapping;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +77,42 @@ public class FileController {
     logMap.put("userId", userId);
     logMap.put("path", path);
     logMap.put("name", name);
+    SLOGGER.info(this.gson.toJson(logMap));
+
+    return r;
+  }
+
+  @RequestMapping(value = "/download", method = RequestMethod.GET)
+  @ResponseBody
+  public Result<?> download(HttpServletRequest request, HttpServletResponse response) {
+    long userId = 1L;
+    String path = StringUtils.strip(StringUtils.replaceChars(request.getParameter("path"), (char) 160, ' '));
+
+    Result<File> r = this.fileSo.download(userId, path);
+    File file = r.getData();
+    if (file != null) {
+      InputStream is = null;
+      try {
+        is = new BufferedInputStream(FileUtils.openInputStream(file));
+        String mimeType = URLConnection.guessContentTypeFromStream(is);
+        if (StringUtils.isBlank(mimeType)){
+          mimeType = "application/octet-stream";
+        }
+        response.setContentType(mimeType);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("inline; filename=\"" + file.getName() +"\""));
+        response.setContentLength((int)file.length());
+        FileCopyUtils.copy(is, response.getOutputStream());
+      } catch (Exception e) {
+
+      } finally {
+        IOUtils.closeQuietly(is);
+      }
+    }
+    response.setStatus(r.getStatus());
+
+    Map<String, Object> logMap = new HashMap<>();
+    logMap.put("userId", userId);
+    logMap.put("path", path);
     SLOGGER.info(this.gson.toJson(logMap));
 
     return r;
