@@ -70,6 +70,7 @@ public class FileSo {
     Result<FileDto> r = new Result<>();
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
+      Assert.hasText(name);
       String newPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, name);
       if (StringUtils.isNotBlank(path)) {
         newPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, name);

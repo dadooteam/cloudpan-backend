@@ -10,7 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +43,9 @@ public class ConverterBo {
           temp.setSize(0L);
           temp.setType(CloudpanConstant.TYPE_DIR);
         } else {
-          temp.setMime(URLConnection.guessContentTypeFromStream(FileUtils.openInputStream(file)));
+          InputStream is = new BufferedInputStream(FileUtils.openInputStream(file));
+          temp.setMime(URLConnection.guessContentTypeFromStream(is));
+          is.close();
           temp.setSize(FileUtils.sizeOf(file));
           temp.setType(CloudpanConstant.TYPE_FILE);
         }
