@@ -16,6 +16,7 @@ public class Application {
     return new Gson();
   }
 
+
   public static void main(final String[] args) throws Exception {
     SpringApplication.run(Application.class, args);
   }
