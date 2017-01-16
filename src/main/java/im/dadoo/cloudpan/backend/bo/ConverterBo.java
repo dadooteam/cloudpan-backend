@@ -2,6 +2,8 @@ package im.dadoo.cloudpan.backend.bo;
 
 import im.dadoo.cloudpan.backend.constant.CloudpanConstant;
 import im.dadoo.cloudpan.backend.dto.FileDto;
+import im.dadoo.cloudpan.backend.dto.UserDto;
+import im.dadoo.cloudpan.backend.po.UserPo;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,24 @@ public class ConverterBo {
     List<FileDto> r = new ArrayList<>();
     if (!CollectionUtils.isEmpty(files)) {
       r = files.stream().filter(file -> file != null).map(file -> this.toFileDto(file)).collect(Collectors.toList());
+    }
+    return r;
+  }
+
+  public UserDto toUserDto(UserPo po) {
+    UserDto r = null;
+    if (po != null) {
+      try {
+        r = new UserDto();
+        r.setId(po.getId());
+        r.setGmtCreate(po.getGmtCreate());
+        r.setName(po.getName());
+        r.setPhone(po.getPhone());
+        r.setToken(po.getToken());
+      } catch (Exception e) {
+        MLOGGER.error("toUserDto异常", e);
+        ELOGGER.error("toUserDto异常", e);
+      }
     }
     return r;
   }

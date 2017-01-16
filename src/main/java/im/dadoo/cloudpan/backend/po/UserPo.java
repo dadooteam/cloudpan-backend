@@ -20,6 +20,9 @@ public class UserPo implements Serializable {
   @Column(name = "gmt_modify", nullable = false)
   private long gmtModify;
 
+  @Column(name = "gmt_expire", nullable = false)
+  private long gmtExpire;
+
   @Column(name = "name", nullable = false, length = 20, unique = true)
   private String name;
 
@@ -38,6 +41,7 @@ public class UserPo implements Serializable {
     sb.append("id=").append(id);
     sb.append(", gmtCreate=").append(gmtCreate);
     sb.append(", gmtModify=").append(gmtModify);
+    sb.append(", gmtExpire=").append(gmtExpire);
     sb.append(", name='").append(name).append('\'');
     sb.append(", phone='").append(phone).append('\'');
     sb.append(", password='").append(password).append('\'');
@@ -68,6 +72,14 @@ public class UserPo implements Serializable {
 
   public void setGmtModify(long gmtModify) {
     this.gmtModify = gmtModify;
+  }
+
+  public long getGmtExpire() {
+    return gmtExpire;
+  }
+
+  public void setGmtExpire(long gmtExpire) {
+    this.gmtExpire = gmtExpire;
   }
 
   public String getName() {
