@@ -30,11 +30,11 @@ public class UserSo {
   @Autowired
   private ConverterBo converterBo;
 
-  public Result<UserDto> login(String name, String password) {
+  public Result<UserDto> login(String phone, String password) {
     Result<UserDto> r = new Result<>();
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
-      UserPo po = this.userDao.findByName(name);
+      UserPo po = this.userDao.findByPhone(phone);
       if (StringUtils.equals(po.getName(), password)) {
         long current = System.currentTimeMillis();
         String token = DigestUtils.md5Hex(String.format("%d:%d:%d", po.getId(), current, RandomUtils.nextInt(0, 100)));
@@ -57,7 +57,6 @@ public class UserSo {
     Result<UserDto> r = new Result<>();
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
-
       UserPo userPo = this.userDao.findByToken(token);
       if (userPo != null) {
         long gmtCurrent = System.currentTimeMillis();
@@ -66,6 +65,30 @@ public class UserSo {
         } else {
           r.setData(this.converterBo.toUserDto(userPo));
         }
+      }
+      r.setCode(CloudpanCode.OK.getCode());
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
+    }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
+  public Result<UserDto> insert(String phone, String password) {
+    Result<UserDto> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+      UserPo po = new UserPo();
+      po.setGmtCreate(System.currentTimeMillis());
+      po.setGmtModify(po.getGmtCreate());
+      po.setName(phone);
+      po.setPhone(phone);
+      po.setPassword(password);
+      po = this.userDao.save(po);
+      if (po != null) {
+        r = this.login(phone, password);
       }
       r.setCode(CloudpanCode.OK.getCode());
     } catch (Exception e) {

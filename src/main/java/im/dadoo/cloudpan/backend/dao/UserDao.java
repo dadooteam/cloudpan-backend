@@ -6,7 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface UserDao extends CrudRepository<UserPo, Long> {
 
-  UserPo findByName(String name);
+  UserPo findByPhone(String phone);
 
   UserPo findByToken(String token);
 }

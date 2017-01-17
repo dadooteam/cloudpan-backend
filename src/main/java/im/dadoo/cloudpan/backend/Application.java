@@ -21,7 +21,7 @@ public class Application extends WebMvcConfigurerAdapter {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(this.authInteceptor).addPathPatterns("/**")
-        .excludePathPatterns("/hello");
+        .excludePathPatterns("/hello", "/login", "/user");
   }
 
   @Bean
