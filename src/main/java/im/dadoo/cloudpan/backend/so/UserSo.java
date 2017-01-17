@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 /**
  * Created by codekitten on 2017/1/16.
@@ -43,6 +44,30 @@ public class UserSo {
         r.setData(this.converterBo.toUserDto(po));
         r.setCode(CloudpanCode.OK.getCode());
       }
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
+    }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
+  public Result<UserDto> auth(String token) {
+    Result<UserDto> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+
+      UserPo userPo = this.userDao.findByToken(token);
+      if (userPo != null) {
+        long gmtCurrent = System.currentTimeMillis();
+        if (gmtCurrent > userPo.getGmtExpire()) {
+          r = this.login(userPo.getName(), userPo.getPassword());
+        } else {
+          r.setData(this.converterBo.toUserDto(userPo));
+        }
+      }
+      r.setCode(CloudpanCode.OK.getCode());
     } catch (Exception e) {
       r.setMessage(e.getLocalizedMessage());
       MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
