@@ -35,7 +35,7 @@ public class UserSo {
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
       UserPo po = this.userDao.findByPhone(phone);
-      if (StringUtils.equals(po.getName(), password)) {
+      if (StringUtils.equals(po.getPassword(), password)) {
         long current = System.currentTimeMillis();
         String token = DigestUtils.md5Hex(String.format("%d:%d:%d", po.getId(), current, RandomUtils.nextInt(0, 100)));
         po.setGmtExpire(current + 30*24*60*60*1000);
@@ -86,6 +86,7 @@ public class UserSo {
       po.setName(phone);
       po.setPhone(phone);
       po.setPassword(password);
+      po.setToken("");
       po = this.userDao.save(po);
       if (po != null) {
         r = this.login(phone, password);
