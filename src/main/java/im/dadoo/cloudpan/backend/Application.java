@@ -13,11 +13,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  * Created by codekitten on 2016/12/27.
  */
 @SpringBootApplication
-public class Application {
+public class Application extends WebMvcConfigurerAdapter {
+
+  @Autowired
+  private AuthInteceptor authInteceptor;
 
   @Bean
   public Gson gson() {
     return new Gson();
+  }
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(this.authInteceptor).addPathPatterns("/**")
+        .excludePathPatterns("/hello", "/login", "/user");
   }
 
   public static void main(final String[] args) throws Exception {
