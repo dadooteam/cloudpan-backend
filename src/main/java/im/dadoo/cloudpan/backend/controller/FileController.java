@@ -31,14 +31,15 @@ public class FileController {
   private FileSo fileSo;
 
   @RequestMapping(value = "/upload", method = RequestMethod.POST)
-  public ResponseEntity<Result<?>> upload(@RequestParam(required = false) String path, @RequestParam MultipartFile file) {
-    long userId = 1L;
+  public ResponseEntity<Result<?>> upload(@RequestParam(required = false) String path,
+                                          @RequestParam MultipartFile file,
+                                          @RequestAttribute long visitorId) {
 
     path = StringUtils.strip(StringUtils.replaceChars(path, (char) 160, ' '));
-    Result<FileDto> r = this.fileSo.upload(userId, path, file);
+    Result<FileDto> r = this.fileSo.upload(visitorId, path, file);
 
     Map<String, Object> logMap = new HashMap<>();
-    logMap.put("userId", userId);
+    logMap.put("visitorId", visitorId);
     logMap.put("path", path);
     logMap.put("name", file.getOriginalFilename());
     SLOGGER.info(this.gson.toJson(logMap));
@@ -47,14 +48,15 @@ public class FileController {
   }
 
   @RequestMapping(value = "/mkdir", method = RequestMethod.POST)
-  public ResponseEntity<Result<?>> mkdir(@RequestParam(required = false) String path, @RequestParam String name) {
-    long userId = 1L;
+  public ResponseEntity<Result<?>> mkdir(@RequestParam(required = false) String path,
+                                         @RequestParam String name,
+                                         @RequestAttribute long visitorId) {
     path = StringUtils.strip(StringUtils.replaceChars(path, (char) 160, ' '));
     name = StringUtils.strip(name);
-    Result<FileDto> r = this.fileSo.mkdir(userId, path, name);
+    Result<FileDto> r = this.fileSo.mkdir(visitorId, path, name);
 
     Map<String, Object> logMap = new HashMap<>();
-    logMap.put("userId", userId);
+    logMap.put("visitorId", visitorId);
     logMap.put("path", path);
     logMap.put("name", name);
     SLOGGER.info(this.gson.toJson(logMap));
@@ -63,14 +65,14 @@ public class FileController {
   }
 
   @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-  public ResponseEntity<Result<?>> delete(@RequestParam(required = false) String path) {
-    long userId = 1L;
+  public ResponseEntity<Result<?>> delete(@RequestParam(required = false) String path,
+                                          @RequestAttribute long visitorId) {
 
     path = StringUtils.strip(StringUtils.replaceChars(path, (char) 160, ' '));
-    Result<Object> r = this.fileSo.delete(userId, path);
+    Result<Object> r = this.fileSo.delete(visitorId, path);
 
     Map<String, Object> logMap = new HashMap<>();
-    logMap.put("userId", userId);
+    logMap.put("visitorId", visitorId);
     logMap.put("path", path);
     SLOGGER.info(this.gson.toJson(logMap));
 
@@ -78,14 +80,14 @@ public class FileController {
   }
 
   @RequestMapping(value = "/list", method = RequestMethod.GET)
-  public ResponseEntity<Result<?>> list(@RequestParam(value = "path", required = false) String path) {
-    long userId = 1L;
+  public ResponseEntity<Result<?>> list(@RequestParam(value = "path", required = false) String path,
+                                        @RequestAttribute long visitorId) {
 
     path = StringUtils.strip(StringUtils.replaceChars(path, (char) 160, ' '));
-    Result<List<FileDto>> r = this.fileSo.list(userId, path);
+    Result<List<FileDto>> r = this.fileSo.list(visitorId, path);
 
     Map<String, Object> logMap = new HashMap<>();
-    logMap.put("userId", userId);
+    logMap.put("visitorId", visitorId);
     logMap.put("path", path);
     SLOGGER.info(this.gson.toJson(logMap));
 
