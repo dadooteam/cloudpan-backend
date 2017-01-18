@@ -37,7 +37,8 @@ public class UserSo {
       if (StringUtils.equals(po.getPassword(), password)) {
         long current = System.currentTimeMillis();
         String token = DigestUtils.md5Hex(String.format("%d:%d:%d", po.getId(), current, RandomUtils.nextInt(0, 100)));
-        po.setGmtExpire(current + 30*24*60*60*1000);
+        long gmtExpire = current + 2592000000L;
+        po.setGmtExpire(gmtExpire);
         po.setToken(token);
         po = this.userDao.save(po);
         r.setData(this.converterBo.toUserDto(po));
