@@ -115,6 +115,26 @@ public class FileSo {
     return r;
   }
 
+  public Result<File> download(long userId, String path) {
+    Result<File> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+      Assert.hasText(path);
+      String fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+      File data = new File(fullPath);
+      if (data != null && data.exists() && data.isFile()) {
+        r.setData(data);
+      }
+      r.setCode(CloudpanCode.OK.getCode());
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
+    }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
   public Result<List<FileDto>> list(long userId, String path) {
     Result<List<FileDto>> r = new Result<>();
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
