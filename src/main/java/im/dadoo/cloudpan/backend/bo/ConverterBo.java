@@ -40,7 +40,8 @@ public class ConverterBo {
         FileDto temp = new FileDto();
         temp.setGmtModify(file.lastModified());
         temp.setName(file.getName());
-        temp.setPath(StringUtils.removePattern(file.getPath(), String.format("^%s/[0-9]+/", this.env.getProperty("master.path"))));
+        temp.setPath(StringUtils.removePattern(StringUtils.replace(file.getPath(), "\\", "/"),
+            String.format("^%s/[0-9]+/", this.env.getProperty("master.path"))));
         if (file.isDirectory()) {
           temp.setMime("");
           temp.setSize(0L);
