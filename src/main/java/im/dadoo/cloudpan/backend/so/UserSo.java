@@ -65,8 +65,11 @@ public class UserSo {
         } else {
           r.setData(this.converterBo.toUserDto(userPo));
         }
+        r.setCode(CloudpanCode.OK.getCode());
+      } else {
+        r.setMessage("token已过期");
+        r.setCode(CloudpanCode.FORBIDDEN.getCode());
       }
-      r.setCode(CloudpanCode.OK.getCode());
     } catch (Exception e) {
       r.setMessage(e.getLocalizedMessage());
       MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));

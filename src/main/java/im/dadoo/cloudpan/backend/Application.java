@@ -2,7 +2,6 @@ package im.dadoo.cloudpan.backend;
 
 import com.google.gson.Gson;
 import im.dadoo.cloudpan.backend.interceptor.AuthInteceptor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

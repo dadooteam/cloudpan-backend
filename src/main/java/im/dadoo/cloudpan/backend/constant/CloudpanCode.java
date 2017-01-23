@@ -12,7 +12,7 @@ public enum CloudpanCode {
 
   DIR_NOT_CREATED(400_001_003, "内部文件夹创建失败"),
 
-  FORBIDDEN(403_001_000, "拒绝此操作"),
+  FORBIDDEN(401_001_000, "拒绝此操作"),
 
   NONAME_ERROR(500_001_000, "未知错误"),
   NETWORK_ERROR(500_001_001, "网络错误");
