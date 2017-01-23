@@ -5,6 +5,7 @@ import im.dadoo.cloudpan.backend.dto.FileDto;
 import im.dadoo.cloudpan.backend.dto.UserDto;
 import im.dadoo.cloudpan.backend.po.UserPo;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -39,7 +40,7 @@ public class ConverterBo {
         FileDto temp = new FileDto();
         temp.setGmtModify(file.lastModified());
         temp.setName(file.getName());
-        temp.setPath(file.getPath());
+        temp.setPath(StringUtils.removePattern(file.getPath(), String.format("^%s/[0-9]+/", this.env.getProperty("master.path"))));
         if (file.isDirectory()) {
           temp.setMime("");
           temp.setSize(0L);
