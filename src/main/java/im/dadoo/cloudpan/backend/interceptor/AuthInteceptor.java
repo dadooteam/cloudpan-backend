@@ -32,6 +32,10 @@ public class AuthInteceptor implements HandlerInterceptor {
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object o) throws Exception {
     boolean r = false;
     String token = request.getHeader(HttpHeaders.AUTHORIZATION);
+    //header中没有，就从param中取token
+    if (StringUtils.isBlank(token)) {
+      token = request.getParameter("__t");
+    }
     if (StringUtils.isNotBlank(token)) {
       Result<UserDto> rUserDto = this.userSo.auth(token);
       if (CloudpanCode.OK.getCode() == rUserDto.getCode()) {
@@ -42,13 +46,8 @@ public class AuthInteceptor implements HandlerInterceptor {
         response.setStatus(rUserDto.getStatus());
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json; charset=utf-8");
-        PrintWriter writer = response.getWriter();
-        try {
+        try (PrintWriter writer = response.getWriter()) {
           writer.append(this.gson.toJson(rUserDto));
-        } finally {
-          if (writer != null) {
-            writer.close();
-          }
         }
       }
     }
