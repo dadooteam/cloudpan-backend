@@ -84,7 +84,7 @@ public class ConverterBo {
           .collect(Collectors.toList()).stream().map(future -> {
             FileDto dto = null;
             try {
-              dto = future.get(10, TimeUnit.SECONDS);
+              dto = future.get(1, TimeUnit.MINUTES);
             } catch (Exception e) {
               ELOGGER.error("获取文件信息超时", e);
             }
