@@ -60,8 +60,8 @@ public class ConverterBo {
             if (StringUtils.startsWith(temp.getMime(), "image/")) {
               try (ByteArrayOutputStream os = new ByteArrayOutputStream(1024)){
                 Thumbnails.of(is).size(50, 50).outputQuality(0.5).outputFormat("jpg").toOutputStream(os);
-                String code = Base64.encodeBase64URLSafeString(os.toByteArray());
-                temp.setThumbnail(String.format("data:image/jpg;base64,%s", code));
+                String code = Base64.encodeBase64String(os.toByteArray());
+                temp.setThumbnail(String.format("data:image/jpeg;base64,%s", code));
               }
             }
           }
