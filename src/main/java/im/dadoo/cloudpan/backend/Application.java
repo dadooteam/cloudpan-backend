@@ -11,6 +11,9 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Created by codekitten on 2016/12/27.
  */
@@ -26,6 +29,11 @@ public class Application extends WebMvcConfigurerAdapter {
   @Bean
   public Gson gson() {
     return new Gson();
+  }
+
+  @Bean(destroyMethod = "shutdown")
+  public ExecutorService executor() {
+    return Executors.newCachedThreadPool();
   }
 
   @Override

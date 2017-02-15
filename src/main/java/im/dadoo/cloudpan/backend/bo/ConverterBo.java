@@ -4,6 +4,8 @@ import im.dadoo.cloudpan.backend.constant.CloudpanConstant;
 import im.dadoo.cloudpan.backend.dto.FileDto;
 import im.dadoo.cloudpan.backend.dto.UserDto;
 import im.dadoo.cloudpan.backend.po.UserPo;
+import net.coobird.thumbnailator.Thumbnails;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,11 +16,14 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +37,9 @@ public class ConverterBo {
 
   @Resource
   private Environment env;
+
+  @Resource
+  private ExecutorService executor;
 
   public FileDto toFileDto(File file) {
     FileDto r = null;
@@ -47,9 +55,16 @@ public class ConverterBo {
           temp.setSize(0L);
           temp.setType(CloudpanConstant.TYPE_DIR);
         } else {
-          InputStream is = new BufferedInputStream(FileUtils.openInputStream(file));
-          temp.setMime(URLConnection.guessContentTypeFromStream(is));
-          is.close();
+          try (InputStream is = new BufferedInputStream(FileUtils.openInputStream(file))) {
+            temp.setMime(URLConnection.guessContentTypeFromStream(is));
+            if (StringUtils.startsWith(temp.getMime(), "image/")) {
+              try (ByteArrayOutputStream os = new ByteArrayOutputStream(1024)){
+                Thumbnails.of(is).size(50, 50).outputQuality(0.5).outputFormat("jpg").toOutputStream(os);
+                String code = Base64.encodeBase64URLSafeString(os.toByteArray());
+                temp.setThumbnail(String.format("data:image/jpg;base64,%s", code));
+              }
+            }
+          }
           temp.setSize(FileUtils.sizeOf(file));
           temp.setType(CloudpanConstant.TYPE_FILE);
         }
@@ -65,7 +80,16 @@ public class ConverterBo {
   public List<FileDto> toFileDtos(List<File> files) {
     List<FileDto> r = new ArrayList<>();
     if (!CollectionUtils.isEmpty(files)) {
-      r = files.stream().filter(file -> file != null).map(file -> this.toFileDto(file)).collect(Collectors.toList());
+      r = files.stream().filter(file -> file != null).map(file -> this.executor.submit(() -> this.toFileDto(file)))
+          .collect(Collectors.toList()).stream().map(future -> {
+            FileDto dto = null;
+            try {
+              dto = future.get(10, TimeUnit.SECONDS);
+            } catch (Exception e) {
+              ELOGGER.error("获取文件信息超时", e);
+            }
+            return dto;
+          }).filter(dto -> dto != null).collect(Collectors.toList());
     }
     return r;
   }
