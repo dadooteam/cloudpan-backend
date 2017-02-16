@@ -8,6 +8,7 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,7 +152,8 @@ public class FileSo {
           String mime = URLConnection.guessContentTypeFromStream(is);
           if (StringUtils.startsWith(mime, "image/")) {
             try (ByteArrayOutputStream os = new ByteArrayOutputStream(20480)){
-              Thumbnails.of(is).scale(1.0).outputQuality(0.5).outputFormat("jpg").toOutputStream(os);
+              Thumbnails.of(is).scale(NumberUtils.toDouble(this.env.getProperty("preview.scale"), 1.0))
+                  .outputQuality(0.5).outputFormat("jpg").toOutputStream(os);
               String base64 = Base64.encodeBase64String(os.toByteArray());
               r.setData(String.format("data:image/jpeg;base64,%s", base64));
               r.setCode(CloudpanCode.OK.getCode());
