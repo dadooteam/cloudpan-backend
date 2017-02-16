@@ -2,6 +2,7 @@ package im.dadoo.cloudpan.backend;
 
 import com.google.gson.Gson;
 import im.dadoo.cloudpan.backend.interceptor.AuthInteceptor;
+import im.dadoo.cloudpan.backend.interceptor.MdcInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,6 +25,9 @@ public class Application extends WebMvcConfigurerAdapter {
   private Environment env;
 
   @Autowired
+  private MdcInterceptor mdcInterceptor;
+
+  @Autowired
   private AuthInteceptor authInteceptor;
 
   @Bean
@@ -38,6 +42,7 @@ public class Application extends WebMvcConfigurerAdapter {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(this.mdcInterceptor).addPathPatterns("/**");
     registry.addInterceptor(this.authInteceptor).addPathPatterns("/**")
         .excludePathPatterns("/hello", "/login", "/user");
   }
