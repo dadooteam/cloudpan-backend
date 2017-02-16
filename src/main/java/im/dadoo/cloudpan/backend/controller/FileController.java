@@ -8,11 +8,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +29,9 @@ import java.util.Map;
 public class FileController {
 
   private static final Logger SLOGGER = LoggerFactory.getLogger("stat");
+
+  @Autowired
+  private Environment env;
 
   @Autowired
   private Gson gson;
@@ -84,14 +92,28 @@ public class FileController {
 
   @RequestMapping(value = "/download", method = RequestMethod.GET)
   public String download(@RequestParam(required = false) String path,
-                         @RequestAttribute long visitorId) {
+                         @RequestAttribute long visitorId,
+                         HttpServletResponse response) {
+    String resourceUrl =  "";
     path = StringUtils.strip(StringUtils.replaceChars(path, (char) 160, ' '));
-    String resourceUrl = String.format("/files/%d/%s", visitorId, path);
+    String fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), visitorId, path);
+    File file = new File(fullPath);
+    if (file.exists() && file.isFile()) {
+      String filename = "default";
+      try {
+        filename = URLEncoder.encode(file.getName(), "UTF-8");
+      } catch (Exception e) {
+
+      }
+      response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment;filename=%s", filename));
+      resourceUrl = String.format("/files/%d/%s", visitorId, path);
+    }
 
     Map<String, Object> logMap = new HashMap<>();
     logMap.put("visitorId", visitorId);
     logMap.put("path", path);
     SLOGGER.info(this.gson.toJson(logMap));
+
     return String.format("forward:%s", resourceUrl);
   }
 
