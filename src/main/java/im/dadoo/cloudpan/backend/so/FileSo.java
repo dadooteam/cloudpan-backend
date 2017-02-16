@@ -4,6 +4,8 @@ import im.dadoo.cloudpan.backend.bo.ConverterBo;
 import im.dadoo.cloudpan.backend.constant.CloudpanCode;
 import im.dadoo.cloudpan.backend.dto.FileDto;
 import im.dadoo.cloudpan.backend.dto.Result;
+import net.coobird.thumbnailator.Thumbnails;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,7 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
+import java.io.*;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 
@@ -128,6 +131,34 @@ public class FileSo {
         r.setData(this.converterBo.toFileDtos(Arrays.asList(file.listFiles())));
       }
       r.setCode(CloudpanCode.OK.getCode());
+    } catch (Exception e) {
+      r.setMessage(e.getLocalizedMessage());
+      MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));
+      ELOGGER.error(Long.toString(r.getCode()), e);
+    }
+    r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
+  public Result<String> preview(long userId, String path) {
+    Result<String> r = new Result<>();
+    r.setCode(CloudpanCode.NONAME_ERROR.getCode());
+    try {
+      String fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+      File file = new File(fullPath);
+      if (file.exists() && file.isFile()) {
+        try (BufferedInputStream is = new BufferedInputStream(FileUtils.openInputStream(file))) {
+          String mime = URLConnection.guessContentTypeFromStream(is);
+          if (StringUtils.startsWith(mime, "image/")) {
+            try (ByteArrayOutputStream os = new ByteArrayOutputStream(20480)){
+              Thumbnails.of(is).scale(1.0).outputQuality(0.5).outputFormat("jpg").toOutputStream(os);
+              String base64 = Base64.encodeBase64String(os.toByteArray());
+              r.setData(String.format("data:image/jpeg;base64,%s", base64));
+              r.setCode(CloudpanCode.OK.getCode());
+            }
+          }
+        }
+      }
     } catch (Exception e) {
       r.setMessage(e.getLocalizedMessage());
       MLOGGER.error(String.format("%d:%s", r.getCode(), e.getLocalizedMessage()));

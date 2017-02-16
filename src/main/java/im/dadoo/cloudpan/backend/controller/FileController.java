@@ -95,6 +95,20 @@ public class FileController {
     return String.format("forward:%s", resourceUrl);
   }
 
+  @RequestMapping(value = "/preview", method = RequestMethod.GET)
+  public ResponseEntity<Result<?>> preview(@RequestParam(required = false) String path,
+                         @RequestAttribute long visitorId) {
+    path = StringUtils.strip(StringUtils.replaceChars(path, (char) 160, ' '));
+
+    Result<String> r = this.fileSo.preview(visitorId, path);
+
+    Map<String, Object> logMap = new HashMap<>();
+    logMap.put("visitorId", visitorId);
+    logMap.put("path", path);
+    SLOGGER.info(this.gson.toJson(logMap));
+    return ResponseEntity.status(r.getStatus()).body(r);
+  }
+
   @RequestMapping(value = "/list", method = RequestMethod.GET)
   public ResponseEntity<Result<?>> list(@RequestParam(value = "path", required = false) String path,
                                         @RequestAttribute long visitorId) {
