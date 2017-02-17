@@ -1,5 +1,6 @@
 package im.dadoo.cloudpan.backend.bo;
 
+import eu.medsea.mimeutil.MimeUtil;
 import im.dadoo.cloudpan.backend.constant.CloudpanConstant;
 import im.dadoo.cloudpan.backend.dto.FileDto;
 import im.dadoo.cloudpan.backend.dto.UserDto;
@@ -41,6 +42,10 @@ public class ConverterBo {
   @Resource
   private ExecutorService executor;
 
+  public ConverterBo() {
+    MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+  }
+
   public FileDto toFileDto(File file) {
     FileDto r = null;
     if (file != null) {
@@ -55,14 +60,12 @@ public class ConverterBo {
           temp.setSize(0L);
           temp.setType(CloudpanConstant.TYPE_DIR);
         } else {
-          try (InputStream is = new BufferedInputStream(FileUtils.openInputStream(file))) {
-            temp.setMime(URLConnection.guessContentTypeFromStream(is));
-            if (StringUtils.startsWith(temp.getMime(), "image/")) {
-              try (ByteArrayOutputStream os = new ByteArrayOutputStream(1024)){
-                Thumbnails.of(is).size(50, 50).outputQuality(0.5).outputFormat("jpg").toOutputStream(os);
-                String code = Base64.encodeBase64String(os.toByteArray());
-                temp.setThumbnail(String.format("data:image/jpeg;base64,%s", code));
-              }
+          temp.setMime(MimeUtil.getMimeTypes(file).toArray()[0].toString());
+          if (StringUtils.startsWith(temp.getMime(), "image/")) {
+            try (ByteArrayOutputStream os = new ByteArrayOutputStream(1024)){
+              Thumbnails.of(file).size(30, 30).outputQuality(0.2).outputFormat("jpg").toOutputStream(os);
+              String code = Base64.encodeBase64String(os.toByteArray());
+              temp.setThumbnail(String.format("data:image/jpeg;base64,%s", code));
             }
           }
           temp.setSize(FileUtils.sizeOf(file));
