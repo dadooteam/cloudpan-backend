@@ -131,6 +131,26 @@ public class FileController {
     return ResponseEntity.status(r.getStatus()).body(r);
   }
 
+  @RequestMapping(value = "/thumbnail", method = RequestMethod.GET)
+  public void thumbnail(@RequestParam(required = false) String path,
+                                           @RequestAttribute long visitorId,
+                                             HttpServletResponse response) {
+    path = StringUtils.strip(StringUtils.replaceChars(path, (char) 160, ' '));
+
+    try {
+      if (this.fileSo.thumbnail(visitorId, path, response.getOutputStream())) {
+        response.setHeader(HttpHeaders.CONTENT_TYPE, "image/jpeg");
+      }
+    } catch (Exception e) {
+
+    }
+
+    Map<String, Object> logMap = new HashMap<>();
+    logMap.put("visitorId", visitorId);
+    logMap.put("path", path);
+    SLOGGER.info(this.gson.toJson(logMap));
+  }
+
   @RequestMapping(value = "/list", method = RequestMethod.GET)
   public ResponseEntity<Result<?>> list(@RequestParam(value = "path", required = false) String path,
                                         @RequestAttribute long visitorId) {

@@ -55,7 +55,7 @@ public class FileSo {
         if (newFile.createNewFile()) {
           file.transferTo(newFile);
         }
-        r.setData(this.converterBo.toFileDto(newFile));
+        r.setData(this.converterBo.toFileDto(newFile, userId));
       } else {
         r.setCode(CloudpanCode.NAME_EXIST.getCode());
         throw new Exception(String.format("文件名%s已存在", file.getOriginalFilename()));
@@ -84,7 +84,7 @@ public class FileSo {
       if (!newFile.exists()) {
         //强制创建文件夹
         FileUtils.forceMkdir(newFile);
-        r.setData(this.converterBo.toFileDto(newFile));
+        r.setData(this.converterBo.toFileDto(newFile, userId));
       } else {
         r.setCode(CloudpanCode.NAME_EXIST.getCode());
         throw new Exception(String.format("文件夹名%s已存在", name));
@@ -129,7 +129,7 @@ public class FileSo {
       }
       File file = new File(fullPath);
       if (file.isDirectory()) {
-        r.setData(this.converterBo.toFileDtos(Arrays.asList(file.listFiles())));
+        r.setData(this.converterBo.toFileDtos(Arrays.asList(file.listFiles()), userId));
       }
       r.setCode(CloudpanCode.OK.getCode());
     } catch (Exception e) {
@@ -170,6 +170,28 @@ public class FileSo {
       ELOGGER.error(Long.toString(r.getCode()), e);
     }
     r.setStatus(r.getCode() / 1_000_000);
+    return r;
+  }
+
+  public boolean thumbnail(long userId, String path, OutputStream os) {
+    boolean r = false;
+    try {
+      String fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+      File file = new File(fullPath);
+      if (file.exists() && file.isFile()) {
+        FileDto fileDto = this.converterBo.toFileDto(file, userId);
+        if (StringUtils.startsWith(fileDto.getMime(), "image/")) {
+          Thumbnails.of(file)
+              .size(30, 30)
+              .outputQuality(0.4)
+              .outputFormat("jpg")
+              .toOutputStream(os);
+          r = true;
+        }
+      }
+    } catch (Exception e) {
+
+    }
     return r;
   }
 

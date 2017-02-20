@@ -16,11 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.net.URLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -46,7 +44,7 @@ public class ConverterBo {
     MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
   }
 
-  public FileDto toFileDto(File file) {
+  public FileDto toFileDto(File file, long userId) {
     FileDto r = null;
     if (file != null) {
       try {
@@ -54,20 +52,15 @@ public class ConverterBo {
         temp.setGmtModify(file.lastModified());
         temp.setName(file.getName());
         temp.setPath(StringUtils.removePattern(StringUtils.replace(file.getPath(), "\\", "/"),
-            String.format("^%s/[0-9]+/", this.env.getProperty("master.path"))));
+            String.format("^%s/%d/", this.env.getProperty("master.path"), userId)));
         if (file.isDirectory()) {
           temp.setMime("");
           temp.setSize(0L);
           temp.setType(CloudpanConstant.TYPE_DIR);
         } else {
-          temp.setMime(MimeUtil.getMimeTypes(file).toArray()[0].toString());
-          if (StringUtils.startsWith(temp.getMime(), "image/")) {
-            try (ByteArrayOutputStream os = new ByteArrayOutputStream(1024)){
-              Thumbnails.of(file).size(30, 30).outputQuality(0.2).outputFormat("jpg").toOutputStream(os);
-              String code = Base64.encodeBase64String(os.toByteArray());
-              temp.setThumbnail(String.format("data:image/jpeg;base64,%s", code));
-            }
-          }
+          String url = String.format("http://localhost:%s/files/%d/%s", this.env.getProperty("server.port"), userId, temp.getPath());
+          temp.setMime(new URL(url).openConnection().getContentType());
+//          temp.setMime(MimeUtil.getMimeTypes(file.getName()).toArray()[0].toString());
           temp.setSize(FileUtils.sizeOf(file));
           temp.setType(CloudpanConstant.TYPE_FILE);
         }
@@ -80,10 +73,10 @@ public class ConverterBo {
     return r;
   }
 
-  public List<FileDto> toFileDtos(List<File> files) {
+  public List<FileDto> toFileDtos(List<File> files, long userId) {
     List<FileDto> r = new ArrayList<>();
     if (!CollectionUtils.isEmpty(files)) {
-      r = files.stream().filter(file -> file != null).map(file -> this.executor.submit(() -> this.toFileDto(file)))
+      r = files.stream().filter(file -> file != null).map(file -> this.executor.submit(() -> this.toFileDto(file, userId)))
           .collect(Collectors.toList()).stream().map(future -> {
             FileDto dto = null;
             try {
