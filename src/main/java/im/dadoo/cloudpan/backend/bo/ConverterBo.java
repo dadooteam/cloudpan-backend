@@ -56,7 +56,12 @@ public class ConverterBo {
           temp.setSize(FileUtils.sizeOf(file));
           temp.setType(CloudpanConstant.TYPE_FILE);
           if (StringUtils.startsWith(temp.getMime(), "image/")) {
-            String thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, temp.getPath());
+            String thumbnailPath;
+            if (StringUtils.equals(temp.getMime(), "image/jpeg")) {
+              thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, temp.getPath());
+            } else {
+              thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, temp.getPath() + ".jpg");
+            }
             File thumbnailFile = new File(thumbnailPath);
             if (!thumbnailFile.exists()) {
               FileUtils.forceMkdir(thumbnailFile.getParentFile());
