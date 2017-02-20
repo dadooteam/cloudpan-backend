@@ -50,6 +50,7 @@ public class Application extends WebMvcConfigurerAdapter {
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry.addResourceHandler("/files/**").addResourceLocations(String.format("file:%s/", this.env.getProperty("master.path")));
+    registry.addResourceHandler("/thumbnails/**").addResourceLocations(String.format("file:%s/", this.env.getProperty("thumbnail.path")));
   }
 
   public static void main(final String[] args) throws Exception {

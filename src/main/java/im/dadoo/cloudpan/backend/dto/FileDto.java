@@ -23,6 +23,12 @@ public class FileDto {
   //文件类型，1文件，2文件夹
   private int type;
 
+  //小图标
+  private String thumbnail;
+
+  //预览图
+  private String preview;
+
   @Override
   public String toString() {
     final StringBuffer sb = new StringBuffer("FileDto{");
@@ -32,6 +38,8 @@ public class FileDto {
     sb.append(", mime='").append(mime).append('\'');
     sb.append(", size=").append(size);
     sb.append(", type=").append(type);
+    sb.append(", thumbnail='").append(thumbnail).append('\'');
+    sb.append(", preview='").append(preview).append('\'');
     sb.append('}');
     return sb.toString();
   }
@@ -82,5 +90,21 @@ public class FileDto {
 
   public void setType(int type) {
     this.type = type;
+  }
+
+  public String getThumbnail() {
+    return thumbnail;
+  }
+
+  public void setThumbnail(String thumbnail) {
+    this.thumbnail = thumbnail;
+  }
+
+  public String getPreview() {
+    return preview;
+  }
+
+  public void setPreview(String preview) {
+    this.preview = preview;
   }
 }

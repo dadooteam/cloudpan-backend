@@ -42,20 +42,20 @@ public class FileSo {
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
       Assert.isTrue(!file.isEmpty());
-      String newPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, file.getOriginalFilename());
+      String masterPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, file.getOriginalFilename());
       if (StringUtils.isNotBlank(path)) {
-        newPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, file.getOriginalFilename());
+        masterPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, file.getOriginalFilename());
       }
-      File newFile = new File(newPath);
+      File masterFile = new File(masterPath);
       //必须文件不存在才能上传
-      if (!newFile.exists()) {
+      if (!masterFile.exists()) {
         //强制创建文件夹
-        FileUtils.forceMkdir(newFile.getParentFile());
+        FileUtils.forceMkdir(masterFile.getParentFile());
         //创建新文件
-        if (newFile.createNewFile()) {
-          file.transferTo(newFile);
+        if (masterFile.createNewFile()) {
+          file.transferTo(masterFile);
         }
-        r.setData(this.converterBo.toFileDto(newFile, userId));
+        r.setData(this.converterBo.toFileDto(masterFile, userId));
       } else {
         r.setCode(CloudpanCode.NAME_EXIST.getCode());
         throw new Exception(String.format("文件名%s已存在", file.getOriginalFilename()));
@@ -75,16 +75,16 @@ public class FileSo {
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
       Assert.hasText(name);
-      String newPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, name);
+      String masterPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, name);
       if (StringUtils.isNotBlank(path)) {
-        newPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, name);
+        masterPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, name);
       }
-      File newFile = new File(newPath);
+      File masterFile = new File(masterPath);
       //必须文件不存在才能上传
-      if (!newFile.exists()) {
+      if (!masterFile.exists()) {
         //强制创建文件夹
-        FileUtils.forceMkdir(newFile);
-        r.setData(this.converterBo.toFileDto(newFile, userId));
+        FileUtils.forceMkdir(masterFile);
+        r.setData(this.converterBo.toFileDto(masterFile, userId));
       } else {
         r.setCode(CloudpanCode.NAME_EXIST.getCode());
         throw new Exception(String.format("文件夹名%s已存在", name));
@@ -103,12 +103,12 @@ public class FileSo {
     Result<Object> r = new Result<>();
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
-      String fullPath = String.format("%s/%d", this.env.getProperty("master.path"), userId);
       if (StringUtils.isNotBlank(path)) {
-        fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+        String masterPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+        String thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, path);
+        FileUtils.deleteQuietly(new File(masterPath));
+        FileUtils.deleteQuietly(new File(thumbnailPath));
       }
-      File file = new File(fullPath);
-      FileUtils.deleteQuietly(file);
       r.setCode(CloudpanCode.OK.getCode());
     } catch (Exception e) {
       r.setMessage(e.getLocalizedMessage());
@@ -123,11 +123,11 @@ public class FileSo {
     Result<List<FileDto>> r = new Result<>();
     r.setCode(CloudpanCode.NONAME_ERROR.getCode());
     try {
-      String fullPath = String.format("%s/%d", this.env.getProperty("master.path"), userId);
+      String masterPath = String.format("%s/%d", this.env.getProperty("master.path"), userId);
       if (StringUtils.isNotBlank(path)) {
-        fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+        masterPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
       }
-      File file = new File(fullPath);
+      File file = new File(masterPath);
       if (file.isDirectory()) {
         r.setData(this.converterBo.toFileDtos(Arrays.asList(file.listFiles()), userId));
       }
@@ -172,28 +172,5 @@ public class FileSo {
     r.setStatus(r.getCode() / 1_000_000);
     return r;
   }
-
-  public boolean thumbnail(long userId, String path, OutputStream os) {
-    boolean r = false;
-    try {
-      String fullPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
-      File file = new File(fullPath);
-      if (file.exists() && file.isFile()) {
-        FileDto fileDto = this.converterBo.toFileDto(file, userId);
-        if (StringUtils.startsWith(fileDto.getMime(), "image/")) {
-          Thumbnails.of(file)
-              .size(30, 30)
-              .outputQuality(0.4)
-              .outputFormat("jpg")
-              .toOutputStream(os);
-          r = true;
-        }
-      }
-    } catch (Exception e) {
-
-    }
-    return r;
-  }
-
 
 }

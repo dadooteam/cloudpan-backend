@@ -1,12 +1,10 @@
 package im.dadoo.cloudpan.backend.bo;
 
-import eu.medsea.mimeutil.MimeUtil;
 import im.dadoo.cloudpan.backend.constant.CloudpanConstant;
 import im.dadoo.cloudpan.backend.dto.FileDto;
 import im.dadoo.cloudpan.backend.dto.UserDto;
 import im.dadoo.cloudpan.backend.po.UserPo;
 import net.coobird.thumbnailator.Thumbnails;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -40,10 +37,6 @@ public class ConverterBo {
   @Resource
   private ExecutorService executor;
 
-  public ConverterBo() {
-    MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
-  }
-
   public FileDto toFileDto(File file, long userId) {
     FileDto r = null;
     if (file != null) {
@@ -60,9 +53,17 @@ public class ConverterBo {
         } else {
           String url = String.format("http://localhost:%s/files/%d/%s", this.env.getProperty("server.port"), userId, temp.getPath());
           temp.setMime(new URL(url).openConnection().getContentType());
-//          temp.setMime(MimeUtil.getMimeTypes(file.getName()).toArray()[0].toString());
           temp.setSize(FileUtils.sizeOf(file));
           temp.setType(CloudpanConstant.TYPE_FILE);
+          if (StringUtils.startsWith(temp.getMime(), "image/")) {
+            String thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, temp.getPath());
+            File thumbnailFile = new File(thumbnailPath);
+            if (!thumbnailFile.exists()) {
+              FileUtils.forceMkdir(thumbnailFile.getParentFile());
+              thumbnailFile.createNewFile();
+              Thumbnails.of(file).size(100, 100).outputQuality(0.4).outputFormat("jpg").toFile(thumbnailFile);
+            }
+          }
         }
         r = temp;
       } catch (Exception e) {

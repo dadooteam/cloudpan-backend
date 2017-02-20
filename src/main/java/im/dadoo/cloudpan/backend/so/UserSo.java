@@ -7,12 +7,16 @@ import im.dadoo.cloudpan.backend.dto.Result;
 import im.dadoo.cloudpan.backend.dto.UserDto;
 import im.dadoo.cloudpan.backend.po.UserPo;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
 
 /**
  * Created by codekitten on 2017/1/16.
@@ -22,6 +26,9 @@ public class UserSo {
 
   private static final Logger MLOGGER = LoggerFactory.getLogger(UserSo.class);
   private static final Logger ELOGGER = LoggerFactory.getLogger(Exception.class);
+
+  @Autowired
+  private Environment env;
 
   @Autowired
   private UserDao userDao;
@@ -91,6 +98,12 @@ public class UserSo {
       po.setPassword(password);
       po.setToken("");
       po = this.userDao.save(po);
+      String masterPath = String.format("%s/%d", this.env.getProperty("master.path"), po.getId());
+      FileUtils.forceMkdir(new File(masterPath));
+      String thumbnailPath = String.format("%s/%s/%d", this.env.getProperty("cache.path"), "thumbnail", po.getId());
+      FileUtils.forceMkdir(new File(thumbnailPath));
+      String previewPath = String.format("%s/%s/%d", this.env.getProperty("cache.path"), "preview", po.getId());
+      FileUtils.forceMkdir(new File(previewPath));
       if (po != null) {
         r = this.login(phone, password);
       }
