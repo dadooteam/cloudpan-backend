@@ -59,8 +59,10 @@ public class ConverterBo {
             String thumbnailPath;
             if (StringUtils.equals(temp.getMime(), "image/jpeg")) {
               thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, temp.getPath());
+              temp.setThumbnail(temp.getPath());
             } else {
               thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, temp.getPath() + ".jpg");
+              temp.setThumbnail(temp.getPath() + ".jpg");
             }
             File thumbnailFile = new File(thumbnailPath);
             if (!thumbnailFile.exists()) {
