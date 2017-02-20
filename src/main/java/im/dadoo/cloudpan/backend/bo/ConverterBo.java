@@ -7,6 +7,7 @@ import im.dadoo.cloudpan.backend.po.UserPo;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -16,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.io.File;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -51,8 +53,9 @@ public class ConverterBo {
           temp.setSize(0L);
           temp.setType(CloudpanConstant.TYPE_DIR);
         } else {
-          String url = String.format("http://localhost:%s/files/%d/%s", this.env.getProperty("server.port"), userId, temp.getPath());
-          temp.setMime(new URL(url).openConnection().getContentType());
+//          String url = String.format("http://localhost:%s/files/%d/%s", this.env.getProperty("server.port"), userId, temp.getPath());
+          URL url = new URL("http", "localhost", NumberUtils.toInt(this.env.getProperty("server.port")), String.format("/files/%d/%s", userId, temp.getPath()));
+          temp.setMime(url.openConnection().getContentType());
           temp.setSize(FileUtils.sizeOf(file));
           temp.setType(CloudpanConstant.TYPE_FILE);
           if (StringUtils.startsWith(temp.getMime(), "image/")) {

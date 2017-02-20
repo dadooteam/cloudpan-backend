@@ -114,7 +114,7 @@ public class FileController {
     logMap.put("path", path);
     SLOGGER.info(this.gson.toJson(logMap));
 
-    return String.format("redirect:%s", String.format("/files/%d/%s", visitorId, path));
+    return String.format("forward:%s", resourceUrl);
   }
 
   @RequestMapping(value = "/preview", method = RequestMethod.GET)
