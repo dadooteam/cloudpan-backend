@@ -79,8 +79,11 @@ public final class MimeUtil {
 
   public static String getMime(String suffix) {
     String r = "application/octet-stream";
-    if (StringUtils.isNotBlank(suffix) && map.containsKey(suffix.toLowerCase())) {
-      r = map.get(suffix);
+    if (StringUtils.isNotBlank(suffix)) {
+      suffix = suffix.toLowerCase();
+      if (map.containsKey(suffix)) {
+        r = map.get(suffix);
+      }
     }
     return r;
   }
