@@ -1,5 +1,7 @@
 package im.dadoo.cloudpan.backend.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,7 +79,7 @@ public final class MimeUtil {
 
   public static String getMime(String suffix) {
     String r = "application/octet-stream";
-    if (map.containsKey(suffix)) {
+    if (StringUtils.isNotBlank(suffix) && map.containsKey(suffix.toLowerCase())) {
       r = map.get(suffix);
     }
     return r;
