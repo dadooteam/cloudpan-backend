@@ -98,12 +98,16 @@ public class UserSo {
       po.setPassword(password);
       po.setToken("");
       po = this.userDao.save(po);
+      //主盘创建个人目录
       String masterPath = String.format("%s/%d", this.env.getProperty("master.path"), po.getId());
       FileUtils.forceMkdir(new File(masterPath));
+      //副盘创建个人目录
+      String slavePath = String.format("%s/%d", this.env.getProperty("slave.path"), po.getId());
+      FileUtils.forceMkdir(new File(slavePath));
+      //创建缩略图目录
       String thumbnailPath = String.format("%s/%s/%d", this.env.getProperty("cache.path"), "thumbnail", po.getId());
       FileUtils.forceMkdir(new File(thumbnailPath));
-      String previewPath = String.format("%s/%s/%d", this.env.getProperty("cache.path"), "preview", po.getId());
-      FileUtils.forceMkdir(new File(previewPath));
+
       if (po != null) {
         r = this.login(phone, password);
       }

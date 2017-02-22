@@ -45,17 +45,24 @@ public class FileSo {
     try {
       Assert.isTrue(!file.isEmpty());
       String masterPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, file.getOriginalFilename());
+      String backupPath = String.format("%s/%d/%s", this.env.getProperty("backup.path"), userId, file.getOriginalFilename());
       if (StringUtils.isNotBlank(path)) {
         masterPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, file.getOriginalFilename());
+        backupPath = String.format("%s/%d/%s/%s", this.env.getProperty("backup.path"), userId, path, file.getOriginalFilename());
       }
       File masterFile = new File(masterPath);
+      File backupFile = new File(backupPath);
       //必须文件不存在才能上传
-      if (!masterFile.exists()) {
+      if (!masterFile.exists() && !backupFile.exists()) {
         //强制创建文件夹
         FileUtils.forceMkdir(masterFile.getParentFile());
+        FileUtils.forceMkdir(backupFile.getParentFile());
         //创建新文件
         if (masterFile.createNewFile()) {
           file.transferTo(masterFile);
+        }
+        if (backupFile.createNewFile()) {
+          file.transferTo(backupFile);
         }
         r.setData(this.converterBo.toFileDto(masterFile, userId));
       } else {
@@ -78,14 +85,18 @@ public class FileSo {
     try {
       Assert.hasText(name);
       String masterPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, name);
+      String backupPath = String.format("%s/%d/%s", this.env.getProperty("backup.path"), userId, name);
       if (StringUtils.isNotBlank(path)) {
         masterPath = String.format("%s/%d/%s/%s", this.env.getProperty("master.path"), userId, path, name);
+        backupPath = String.format("%s/%d/%s/%s", this.env.getProperty("backup.path"), userId, path, name);
       }
       File masterFile = new File(masterPath);
+      File backupFile = new File(backupPath);
       //必须文件不存在才能上传
-      if (!masterFile.exists()) {
+      if (!masterFile.exists() && !backupFile.exists()) {
         //强制创建文件夹
         FileUtils.forceMkdir(masterFile);
+        FileUtils.forceMkdir(backupFile);
         r.setData(this.converterBo.toFileDto(masterFile, userId));
       } else {
         r.setCode(CloudpanCode.NAME_EXIST.getCode());
@@ -107,8 +118,10 @@ public class FileSo {
     try {
       if (StringUtils.isNotBlank(path)) {
         String masterPath = String.format("%s/%d/%s", this.env.getProperty("master.path"), userId, path);
+        String backupPath = String.format("%s/%d/%s", this.env.getProperty("backup.path"), userId, path);
         String thumbnailPath = String.format("%s/%d/%s", this.env.getProperty("thumbnail.path"), userId, path);
         FileUtils.deleteQuietly(new File(masterPath));
+        FileUtils.deleteQuietly(new File(backupPath));
         FileUtils.deleteQuietly(new File(thumbnailPath));
       }
       r.setCode(CloudpanCode.OK.getCode());
